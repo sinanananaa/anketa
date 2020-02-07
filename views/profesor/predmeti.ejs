@@ -1,0 +1,36 @@
+<body>
+
+    <div class="container">
+        <header>
+            <h3>Predmeti</h3>
+
+        </header>
+        <div class="input-group mb-3">
+            <input id="novi-predmet" type="text" class="form-control" placeholder="Unesite naziv predmeta"  >
+            <button class="btn btn-outline-info" id="enter" type="button" onclick='dodajPredmet($("#novi-predmet").val())'>Dodaj</button>
+        </div>
+
+
+        <ul class="list-group">
+            <% for(var i = 0; i < predmeti.length; i++) { %>
+                <li class="list-group-item">
+                    <a href=<%= "/profesor/predmet/"+predmeti[i]._id%> >
+                        <%= predmeti[i].naziv %>
+                    </a>
+                </li>
+            <% } %>
+        </ul>
+    </div>
+
+    <script>
+        function dodajPredmet(naziv) {
+            $.ajax({
+                url: '/profesor/predmet/dodaj/'+naziv,
+                method: 'POST'
+            }).done(function(result){
+                console.log("reload");
+                location.reload();
+            });
+        }
+    </script>
+</body>

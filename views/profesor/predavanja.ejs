@@ -1,0 +1,138 @@
+<body>
+
+    <div class="container">
+
+        <div class="input-group mb-3">
+            <input id="novi-student" type="text" class="form-control" placeholder="Unesite broj indeksa"  >
+            <button class="btn btn-outline-info" id="enter" type="button" onclick='dodajStudenta($("#novi-student").val())'>Dodaj studenta</button>
+        </div>
+
+        <header>
+            <h3>Predavanja</h3>
+
+        </header>
+
+        <div class="mb-3">
+            <button class="btn btn-light btn-lg btn-block" id="enter" type="button" data-toggle="modal" data-target="#exampleModal" >Dodaj predavanje</button>
+        </div>
+
+
+
+        <ul class="list-group">
+            <% for(var i = 0; i < predavanja.length; i++) { %>
+                <li class="list-group-item flex-column align-items-start">
+                    <div class="form-row" style="display: flex">
+                        <a href=<%= "/profesor/predavanje/"+predavanja[i]._id%>>
+                           <h3> <%= predavanja[i].naziv %> </h3>
+                        </a>
+                        <button style="margin-left: auto" class="btn btn-outline-info" type="button" onclick='pokreniAnketu("<%= predavanja[i]._id %>", "<%= predavanja[i].sifra %>")'>Pokreni</button>
+                    </div>
+                    <p class="mb-1"> Šifra: <%= predavanja[i].sifra %></p>
+                    <p class="mb-1"> Anonima: <%= predavanja[i].anonimna %></p>
+                    <p class="mb-1"> Počinje: <%= predavanja[i].vrijemeStart %></p>
+                </li>
+            <% } %>
+        </ul>
+    </div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Novo predavanje</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="naziv-predavanja">Unesite naziv predavanja</label>
+                            <input id="naziv-predavanja" type="text" class="form-control" placeholder="NAZIV" style="width: 95%">
+                            <div class="form-row">
+                                <div class="form-group col-md-7">
+                                    <label for="sifra-predavanja">Unesite šifru predavanja</label>
+                                    <input id="sifra-predavanja" type="text" class="form-control" placeholder="ŠIFRA">
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label for="rb-predavanja">Unesite redni broj</label>
+                                    <input id="rb-predavanja" type="number" class="form-control" placeholder="RB">
+                                </div>
+                            </div>
+                            <label for="sifra-predavanja">Unesite vrijeme početka</label>
+                            <input id="vrijeme" type="datetime-local" class="form-control" placeholder="Vrijeme pocetka...">
+                            <label for="radio-anonimna">Da li je anketa anonima?</label>
+                            <div id="radio-anonimna" class="form-check">
+                                <input class="form-check-input" type="radio" name="exampleRadios" id="opcija1" checked>
+                                <label class="form-check-label" for="opcija1">Anonimna</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="exampleRadios" id="opcija2" checked>
+                                <label class="form-check-label" for="opcija2">Nije anonimna</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button id="zatvori" type="button" class="btn btn-secondary" data-dismiss="modal">Zatvori</button>
+                    <button type="button" class="btn btn-primary" onclick="dodajPredavanje()">Spremi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        function dodajPredavanje() {
+            var url = window.location.href;
+            var anonimna = ($("#opcija1").is(":checked"));
+
+            $.ajax({
+                url: url+'/dodaj',
+                method: 'POST',
+                type: 'GET',
+                data: {
+                    naziv: $("#naziv-predavanja").val(),
+                    sifra: $("#sifra-predavanja").val(),
+                    vrijeme: $("#vrijeme").val(),
+                    anonimna: anonimna,
+                    rb: $("#rb-predavanja").val()
+                }
+            }).done(function(result){
+                $("#zatvori").trigger("click");
+                location.reload();
+            });
+        }
+
+        function dodajStudenta(indeks) {
+            var url = window.location.href;
+            $.ajax({
+                url: url+'/dodajStudenta',
+                method: 'POST',
+                type: 'GET',
+                data: {
+                    indeks: indeks
+                }
+            }).done(function(result){
+                location.reload();
+            });
+        }
+
+        function pokreniAnketu(predavanjeId, sifra) {
+            var url = window.location.href;
+            console.log(predavanjeId);
+            $.ajax({
+                url: url+'/aktiviraj',
+                method: 'PUT',
+                type: 'GET',
+                data: {
+                    predId: predavanjeId,
+                    sifra: sifra
+                }
+            }).done(function(result){
+                location.reload();
+            });
+        }
+
+    </script>
+</body>

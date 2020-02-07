@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ANKETA</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" id="bootstrap-css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/anketa.css">
+
+</head>
+
+<body  style="padding: 10vh 0vh">
+
+    <div class="login" style="display: flex; justify-content: center">
+        <% if (loggedIn) { %>
+        <p>Logged in as
+            <%if(currentUser.prof){%> <a href="/profesor"> <%= currentUser.ime %> </a> <% }
+              else {%> <a href="/student"> <%= currentUser.ime %> </a> <%}%>
+            -
+            <span class="log-out"> <a href="/logout"> Log out</a>  </span>
+
+        </p>
+        <%}%>
+    </div>
+
+    <%- body %>
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+
+</body>
+
+</html>

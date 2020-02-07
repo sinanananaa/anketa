@@ -1,0 +1,21 @@
+<body>
+
+    <ul class="list-group">
+        <% for(var i = 0; i < odgovori.length; i++) { %>
+        <li class="list-group-item flex-column align-items-start">
+            <h3> <%= odgovori[i].pitanje.tekst %> </h3>
+            <% if(odgovori[i].tip == 1 || odgovori[i].tip == 2) {%>
+                <p class="mb-1"> Odogovor: <%= odgovori[i].tekst %></p>
+            <% } else if(odgovori[i].tip == 3) { %>
+                <p class="mb-1"> Odgovor: <%= odgovori[i].pitanje.ponudjeniOdgovori[parseInt(odgovori[i].tekst)] %></p>
+            <%} else if(odgovori[i].tip == 4) {%>
+                <p>Odogovori:</p>
+                <% for (var j=0; j<odgovori[i].izabrani.length; j++){%>
+                    <p> <%= odgovori[i].pitanje.ponudjeniOdgovori[odgovori[i].izabrani[j]] %> </p>
+                <%}%>
+            <%}%>
+        </li>
+        <% } %>
+    </ul>
+
+</body>

@@ -1,0 +1,27 @@
+<body>
+<div class="wrapper">
+
+    <div id="formContent">
+
+        <form id="forma-sifra" action="" method="get">
+            <input type="text" id="sifra" class="fadeIn second" name="sifra" placeholder="UNESI SIFRU">
+            <input type="submit" class="fadeIn fourth" value="UNESI SIFRU" onclick='otvoriAnketu()'>
+        </form>
+        <form action="/student/historijaodgovora" method="get">
+            <input type="submit" class="btn fadeIn fourth" value="HISTORIJA ODGOVORA" routerlink="/student/historijaodgovora">
+        </form>
+    </div>
+</div>
+
+<script>
+
+    function otvoriAnketu() {
+        $("#forma-sifra").attr("action", "/anketa/"+$("#sifra").val());
+    }
+
+
+
+
+</script>
+
+</body>

@@ -1,0 +1,68 @@
+<body>
+
+<%if(!currentUser.prof) {%>
+    <div class="form-group">
+        <label for="novo-pitanje">Postavi pitanje:</label>
+        <textarea class="form-control" id="novo-pitanje" rows="3"></textarea>
+        <button type="button" class="btn btn-secondary btn-sm btn-block" onclick="postaviPitanje()">Postavi pitanje</button>
+    </div>
+
+<%}%>
+
+<ul id="lista-pitanja" class="list-group">
+    <% for(var i = 0; i < pitanja.length; i++) { %>
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 id=<%"pitanje"+i%> class="card-title"> <%= pitanja[i].tekst %> </h5>
+                <%if(currentUser.prof) {%>
+                    <a class="btn btn-primary" onclick="ukloni('<%= pitanja[i]._id %>')">Ukloni</a>
+                <%} else {%>
+                    <a class="btn btn-sm btn-primary" onclick="odobravanje('<%= pitanja[i]._id %>')">Odobravam</a>
+                <%}%>
+            </div>
+            <div id="broj-odobravanja" class="card-footer text-muted">
+                Odobravanja: <%= pitanja[i].odobravanja %>
+            </div>
+        </div>
+    <% } %>
+</ul>
+
+<script>
+
+    function postaviPitanje() {
+        var url = window.location.href;
+        var tekst = $("#novo-pitanje").val();
+        if(tekst){
+            $.ajax({
+                url: url+"/dodaj",
+                method: 'POST',
+                data: {
+                    tekst: tekst
+                }
+            }).done(function(result){
+                location.reload();
+            });
+        }
+    }
+    function odobravanje(pitanjeId) {
+        var url = window.location.href;
+        $.ajax({
+            url: url+"/"+pitanjeId+"/odobri",
+            method: 'POST',
+        }).done(function(result){
+            location.reload();
+        });
+    }
+
+    function ukloni(pitanjeId) {
+        var url = window.location.href;
+        $.ajax({
+            url: url+"/"+pitanjeId+"/ukloni",
+            method: 'POST',
+        }).done(function(result){
+            location.reload();
+        });
+    }
+</script>
+
+</body>

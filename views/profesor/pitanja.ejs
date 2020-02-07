@@ -1,0 +1,158 @@
+<body>
+    <div class="container">
+
+        <header>
+            <h3>Pitanja</h3>
+        </header>
+
+        <div class="mb-3">
+            <button class="btn btn-light btn-lg btn-block" id="novo-pitanje" type="button" data-toggle="modal" data-target="#unosNovoPitanjaModal" >Dodaj pitanje</button>
+        </div>
+
+        <ul class="list-group">
+            <% for(var i = 0; i < pitanja.length; i++) { %>
+            <li class="list-group-item">
+                <div class="input-group-append" style="float: right">
+                    <button class="btn btn-outline-info" type="button" onclick="izbrisi('<%= pitanja[i]._id %>')">Izbriši</button>
+                    <button class="btn btn-outline-info" type="button" onclick="otvori('<%= pitanja[i]._id %>')">Otvori</button>
+                </div>
+
+                <p > <%= pitanja[i].tekst %> </p>
+            </li>
+            <% } %>
+        </ul>
+    </div>
+
+    <!-- Modal za unos novog pitanja -->
+    <div class="modal fade" id="unosNovoPitanjaModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Novo pitanje</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="forma-pitanja">
+                        <div class="form-group">
+                            <label for="tip-pitanja">Izaberite tip pitanja</label>
+                            <select class="form-control" id="tip-pitanja" onchange="provjera()">
+                                <option value="1">Tekstualni odgovor</option>
+                                <option value="2">DA/NE odgovor</option>
+                                <option value="3">Višestruki izbor - jedan odabir</option>
+                                <option value="4">Višestruki izbor - vise izbora</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="vrijeme-trajanja">Vrijeme trajanja (u sekundama)</label>
+                            <input id="vrijeme-trajanja" type="number" class="form-control" placeholder="VRIJEME TRAJANJA">
+                        </div>
+                        <div class="form-group">
+                            <label for="tekst-pitanja">Unesite tekst pitanja</label>
+                            <textarea class="form-control" id="tekst-pitanja" rows="3"></textarea>
+                        </div>
+                        <div id="ponudjeni-odgovori">
+                        </div>
+                        <button class="btn btn-light btn-block" id="dodaj-ponudjeni" type="button" onclick="dodajPonudjen()">Dodaj odgovor</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="restartuj()">Zatvori</button>
+                    <button type="button" class="btn btn-primary" onclick="spremiPitanje()">Spremi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+
+
+
+        var brojac = 0;
+        var ponudjeniId = [];
+        var ponudjeni = [];
+
+        var vrijemePitanja;
+        var tekstPitanja;
+        var ponudjeniPitanja = [];
+
+        function dodajPonudjen() {
+            if($("#tip-pitanja").val() == 3 || $("#tip-pitanja").val() == 4) {
+                brojac++;
+                ponudjeniId.push("#ponudjeni" + brojac);
+                $("#ponudjeni-odgovori").append(
+                    `<div class="form-group">
+                    <input id='${"ponudjeni" + brojac}' type="text" class="form-control" placeholder="PONUĐEN ODGOVOR" style="width: 100%">
+                </div>`
+                );
+            }
+        }
+
+        function spremiPitanje() {
+            var url = window.location.href;
+            for(var i=0; i<ponudjeniId.length; i++) {
+                var odg = $(ponudjeniId[i]).val()
+                ponudjeni.push(odg);
+            }
+            var vrijeme;
+            if($("#vrijeme-trajanja").val())
+                vrijeme = $("#vrijeme-trajanja").val();
+            else
+                vrijeme = 60;
+            $.ajax({
+                url: url+'/dodaj',
+                method: 'POST',
+                type: 'GET',
+                data: {
+                    tekst: $("#tekst-pitanja").val(),
+                    tip: $("#tip-pitanja").val(),
+                    vrijeme: vrijeme,
+                    ponudjeniOdg: JSON.stringify(ponudjeni)
+                }
+            }).done(function(result){
+                brojac = 0; ponudjeni = []; ponudjeniId = [];
+                $("#zatvori").trigger("click");
+                location.reload();
+            });
+        }
+
+        function restartuj() {
+            brojac = 0; ponudjeni = []; ponudjeniId = []; $("#tekst-pitanja").val("");
+        }
+
+        function provjera() {
+
+            if($("#tip-pitanja").val() == 1 || $("#tip-pitanja").val() == 2){
+                $("#ponudjeni-odgovori").children().remove();
+                $("#ponudjeni-odgovori").hide();
+            } else {
+                $("#ponudjeni-odgovori").show();
+            }
+        }
+
+        function izbrisi(pitanjeId) {
+            $.ajax({
+                url: "/profesor/pitanje/"+pitanjeId+"/izbrisi",
+                method: 'DELETE'
+            }).done(function(){
+                console.log("brisanje");
+                location.reload();
+            });
+        }
+
+        function otvori(pitanjeId) {
+            var url = window.location.href;
+            $.ajax({
+                url: url+"/pitanje/"+pitanjeId+"/trenutno",
+                method: 'PUT'
+            }).done(function(){
+                location.reload();
+            });
+        }
+
+    </script>
+
+</body>

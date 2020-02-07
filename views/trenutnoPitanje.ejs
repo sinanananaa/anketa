@@ -1,0 +1,280 @@
+<body>
+
+    <% if(prikazpitanje) {%>
+    <div id="pitanje" style="display: flex; flex-direction: column; align-items: center; padding: 10vh;">
+        <div id="tip-1" class="form-group">
+            <h3><%= trenutnopitanje.tekst %></h3>
+
+            <% if(trenutnopitanje.tip == 1) {%>
+                <label for="odgovor-tekst">Unesite odgovor:</label>
+                <textarea class="form-control" id="odgovor-tekst" rows="4"></textarea>
+            <%} else if(trenutnopitanje.tip == 2) {%>
+                <label for="odg-da-ne">Izaberite odgovor:</label>
+                <div id="rodg-da-ne" class="form-check">
+                    <input class="form-check-input" type="radio" name="exampleRadios" id="odg-da" value="DA">
+                    <label class="form-check-label" for="opcija1">DA</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="exampleRadios" id="odg-ne" value="NE" checked>
+                    <label class="form-check-label" for="opcija2">NE</label>
+                </div>
+            <%} else if(trenutnopitanje.tip == 3) {%>
+                <h3>Ovo je pitanje?</h3>
+                <label for="radio-pitanje">Izaberite odgovor:</label>
+                <% for(var i=0; i<trenutnopitanje.ponudjeniOdgovori.length; i++) {%>
+                <div id="radio-pitanje" class="form-check">
+                    <input class="form-check-input" type="radio" name="exampleRadios" id=<%="opcija-radio"+i%> value=<%=i%> checked>
+                    <label class="form-check-label" for=<%="opcija-radio"+i%>> <%= trenutnopitanje.ponudjeniOdgovori[i] %> </label>
+                </div>
+                <%}%>
+            <%} else if(trenutnopitanje.tip == 4) {%>
+                <label>Izaberite odgovor:</label>
+                <% for(var i=0; i<trenutnopitanje.ponudjeniOdgovori.length; i++) {%>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="exampleRadios" id=<%="opcija-check"+i%> value=<%=i%> >
+                    <label class="form-check-label" for=<%="opcija-check"+i%> > <%= trenutnopitanje.ponudjeniOdgovori[i] %> </label>
+                </div>
+                <%}%>
+            <%}%>
+            <%if(!currentUser.prof){%>
+                <button type="button" id="posalji-odgovor" class="btn btn-secondary btn-block" style="margin-top: 10px" onclick="posaljiOdgovor()"> Posalji odgovor </button>
+            <%}%>
+        </div>
+    </div>
+    <%} if(rezultati && trenutnopitanje.tip == 1) {%>
+
+    <div id="container"></div>
+    <script src="https://cdn.anychart.com/releases/v8/js/anychart-base.min.js"></script>
+    <script src="https://cdn.anychart.com/releases/v8/js/anychart-tag-cloud.min.js"></script>
+    <script>
+        <!-- chart code will be here -->
+
+            anychart.onDocumentReady(function () {
+                var o = `<%=odgovori%>`;
+                var odg = o.split(',');
+                var podaci = [];
+                var ponavljanje = [];
+                for (var i = 0; i < odg.length; i++) {
+                    var n = podaci.indexOf(odg[i]);
+                    if (n != -1) {
+                        ponavljanje[n]++;
+                    } else {
+                        podaci.push(odg[i]);
+                        ponavljanje.push(1);
+                    }
+                }
+
+                var data = [];
+                for (var j = 0; j < podaci.length; j++) {
+                    var kategorija = j % 4 + 3;
+                    var k = kategorija.toString();
+                    var d = {"x": podaci[j], "value": ponavljanje[j]*10000, category: k}
+                    data.push(d);
+                };
+
+                // create a tag (word) cloud chart
+                var chart = anychart.tagCloud(data);
+
+                // set a chart title
+                chart.title(`<%= trenutnopitanje.tekst %>`)
+                // set an array of angles at which the words will be laid out
+                chart.angles([0])
+
+                // enable a color range
+                // chart.colorRange(true);
+                // set the color range length
+                chart.colorRange().length('80%');
+
+                // display the word cloud chart
+                chart.container("container");
+                chart.draw();
+            });
+
+            //var formatter = "{%value}{scale:(1)(1000)(1000)(1000)|( dozen)( thousand)( million)( billion)}";
+            // var tooltip = chart.tooltip();
+            ///tooltip.format(formatter);
+
+    </script>
+
+
+    <%} if(rezultati && trenutnopitanje.tip!=1) {%>
+        <div id="chartContainer" style="height: 370px; width: 100%; margin-bottom: 10vh"></div>
+        <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+        <script>
+            window.onload = function() {
+                var dP = [];
+                if(`<%=trenutnopitanje.tip%>` == 2){
+                    var o = `<%=odgovori%>`;
+                    var odg = o.split(',');
+                    var ponavljanje = [0,0];
+                    for (var i = 0; i < odg.length; i++) {
+                        if (odg[i]=="DA") {
+                            ponavljanje[1]++;
+                        } else {
+                            ponavljanje[0]++;
+                        }
+                    }
+                    var procenatDA = ponavljanje[1]*100/odg.length;
+                    var procenatNE = ponavljanje[0]*100/odg.length;
+
+                    dP = [
+                        { y: procenatNE, label: "NE" },
+                        { y: procenatDA, label: "DA" },
+                    ];
+                } else if(`<%=trenutnopitanje.tip%>` == 3){
+                    var ponuda = `<%=trenutnopitanje.ponudjeniOdgovori%>`;
+                    var ponudjeni = ponuda.split(',');
+                    var o = `<%=odgovori%>`;
+                    var odg = o.split(',');
+                    var podaci = [];
+                    var ponavljanje = [];
+                    for (var i = 0; i < odg.length; i++) {
+                        var n = podaci.indexOf(odg[i]);
+                        if (n != -1) {
+                            ponavljanje[n]++;
+                        } else {
+                            podaci.push(odg[i]);
+                            ponavljanje.push(1);
+                        }
+                    }
+
+                    var procenti = [];
+                    for(var t=0; t<ponavljanje.length; t++){
+                        procenti.push(ponavljanje[t]*100/odg.length);
+                    }
+
+                    for(var q=0; q<podaci.length; q++){
+                        var p = {y: procenti[q], label: ponudjeni[parseInt(podaci[q],10)]}
+                        dP.push(p);
+                    }
+
+                } else if(<%=trenutnopitanje.tip%> == 4) {
+                    var ponuda = `<%= trenutnopitanje.ponudjeniOdgovori %>`;
+                    var ponudjeni = ponuda.split(',');
+                    var odg = `<%= odgovori %>`;
+                    odg = JSON.parse(odg);
+                    console.log(odg);
+                    var podaci = [];
+                    var ponavljanje = [];
+                    for (var i = 0; i < odg.length; i++) {
+                        var n = podaci.indexOf(odg[i]);
+                        if (n != -1) {
+                            ponavljanje[n]++;
+                        } else {
+                            podaci.push(odg[i]);
+                            ponavljanje.push(1);
+                        }
+                    }
+
+                    var procenti = [];
+                    for (var t = 0; t < ponavljanje.length; t++) {
+                        procenti.push(ponavljanje[t] * 100 / odg.length);
+                    }
+
+                    for (var q = 0; q < podaci.length; q++) {
+                        var p = {y: procenti[q], label: ponudjeni[podaci[q]]}
+                        dP.push(p);
+                    }
+                }
+                var pitanjeTekst = `<%= trenutnopitanje.tekst%>`;
+                var chart = new CanvasJS.Chart("chartContainer", {
+                    theme: "light2", // "light1", "light2", "dark1", "dark2"
+                    exportEnabled: true,
+                    animationEnabled: true,
+                    title: {
+                        text: pitanjeTekst
+                    },
+                    data: [{
+                        type: "pie",
+                        startAngle: 25,
+                        toolTipContent: "<b>{label}</b>: {y}%",
+                        showInLegend: "true",
+                        legendText: "{label}",
+                        indexLabelFontSize: 16,
+                        indexLabel: "{label} - {y}%",
+                        dataPoints: dP
+                    }]
+                });
+                chart.render();
+
+            }
+        </script>
+    <%} if(currentUser.prof && !anonimna){%>
+
+        <div class="container" style="margin-bottom: 10vh">
+            <ul class="list-group">
+                <% for(var i = 0; i < studenti.length; i++) { %>
+                    <li class="list-group-item flex-column align-items-start">
+                        <h5> <%= studenti[i] %> </h5>
+                        <% if(trenutnopitanje.tip == 1 || trenutnopitanje.tip ==2) {%>
+                            <p class="mb-1"> <%= odgovoriP[i] %></p>
+                        <%} else if(trenutnopitanje.tip == 3){
+                            var odgovorS = trenutnopitanje.ponudjeniOdgovori[parseInt(odgovoriP[i],10)]; %>
+                        <p class="mb-1"> <%= odgovorS %></p>
+                        <%} else if(trenutnopitanje.tip == 4) {
+                            var o = odgovoriP[i];
+                            for(var j=0;j<o.length; j++){ %>
+                                <p class="mb-1"> <%= trenutnopitanje.ponudjeniOdgovori[o[j]]%> </p>
+                            <%}%>
+                        <%}%>
+                    </li>
+                <% } %>
+            </ul>
+        </div>
+
+    <%}%>
+
+
+
+    <script>
+
+        function posaljiOdgovor() {
+            var tip = <%= trenutnopitanje.tip %>;
+            var pitanjeID = "<%= trenutnopitanje._id %>";
+
+            var odgovor;
+            var odgovori = [];
+            if(tip == 1) {
+                odgovor = $("#odgovor-tekst").val();
+            } else if( tip == 2) {
+                if($("#odg-da").is(':checked')) odgovor = "DA";
+                else odgovor = "NE";
+            } else if( tip == 3) {
+                for(var i=0; i< <%= trenutnopitanje.ponudjeniOdgovori.length%>; i++) {
+                    var id = "#opcija-radio"+i;
+                    console.log(id);
+                    if($(id).is(':checked')) {
+                        console.log(i);
+                        odgovor = i;
+                    }
+                }
+            } else if( tip == 4){
+                for(var i=0; i< <%= trenutnopitanje.ponudjeniOdgovori.length%>; i++) {
+                    var id = "#opcija-check"+i;
+                    console.log(id);
+                    if($(id).is(':checked')) {
+                        console.log(i);
+                        odgovori.push(i);
+                    }
+                }
+            }
+
+            $.ajax({
+                url: "/odgovor/posalji",
+                method: 'POST',
+                type: 'GET',
+                data: {
+                    tip: tip,
+                    tekst: odgovor,
+                    izabrani: JSON.stringify(odgovori),
+                    pitanjeId: pitanjeID
+                }
+            }).done(function(result){
+                $("#pitanje").hide();
+                location.reload();
+            });
+
+        }
+
+    </script>
+</body>
